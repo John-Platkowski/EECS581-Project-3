@@ -1,0 +1,19 @@
+flowchart TB
+    Start([Minigame Begins])
+    Display["Display Maze"]
+    Navigate["Player Navigates Maze"]
+    PortalChoice{"Use a Portal?"}
+    Portal["Teleport to Another Location"]
+    Goal{"Reached Exit?"}
+    Complete["Report Completion"]
+    End([Return Result to Game Session])
+
+    Start --> Display
+    Display --> Navigate
+    Navigate --> PortalChoice
+    PortalChoice -->|Yes| Portal
+    PortalChoice -->|No| Goal
+    Portal --> Goal
+    Goal -->|No| Navigate
+    Goal -->|Yes| Complete
+    Complete --> End

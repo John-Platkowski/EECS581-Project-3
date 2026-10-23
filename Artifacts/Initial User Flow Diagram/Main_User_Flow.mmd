@@ -1,0 +1,31 @@
+flowchart TB
+    Player([Player])
+
+    subgraph Game["Jackbox Ripoff"]
+        Menu["Main Menu"]
+        Mode{"Choose Game Mode"}
+        Single["Single-Player"]
+        Multi["Online 1v1 Multiplayer"]
+        Session["Game Session"]
+        Selector["Randomly Select Minigame"]
+        Mini["Play Selected Minigame"]
+        Update["Update Lives, Progress<br/>and Difficulty"]
+        More{"Continue Playing?"}
+        Results["Display Results"]
+        Winner["Compare Player Results<br/>(Multiplayer only)"]
+
+        Menu --> Mode
+        Mode -->|Single-Player| Single
+        Mode -->|Online| Multi
+        Single --> Session
+        Multi --> Session
+        Session --> Selector
+        Selector --> Mini
+        Mini --> Update
+        Update --> More
+        More -->|Yes| Selector
+        More -->|No| Results
+        Results -. "If multiplayer" .-> Winner
+    end
+
+    Player --> Menu

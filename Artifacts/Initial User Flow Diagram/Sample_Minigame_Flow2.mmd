@@ -1,0 +1,21 @@
+flowchart TB
+    Start([Minigame Begins])
+    Show["Display Sequence"]
+    Input["Player Repeats Sequence"]
+    Check{"Sequence Correct?"}
+    Continue{"More Challenges?"}
+    Harder["Increase Sequence Difficulty"]
+    Win["Report Success"]
+    Fail["Report Failure"]
+    End([Return Result to Game Session])
+
+    Start --> Show
+    Show --> Input
+    Input --> Check
+    Check -->|No| Fail
+    Check -->|Yes| Continue
+    Continue -->|Yes| Harder
+    Harder --> Show
+    Continue -->|No| Win
+    Win --> End
+    Fail --> End
