@@ -3,6 +3,9 @@ from screens import *
 from session import Session
 import random
 
+#Nickan Safi 11/6/2026
+#Added handling for results
+
 #Trey Timko - 11/6/2026
 #Maps each minigame name from Session.pickMinigame() to a class
 minigame_classes = {}
@@ -63,3 +66,12 @@ class Game:
             pygame.display.flip()
 
         pygame.quit()
+
+    def handle(result_a, result_b, player_a, player_b):
+        #Nickan Safi 11/6/2026
+        if result_a < result_b:
+            player_a.loseLife()
+        if result_b < result_a:
+            player_b.loseLife()
+        if result_b == result_a:
+            pass
