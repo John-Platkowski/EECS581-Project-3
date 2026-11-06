@@ -1,3 +1,4 @@
+from player import Player
 import random
 
 # Lena - 11/6/2026
@@ -10,6 +11,7 @@ class Session:
         self.difficulty = 1
         self.roundNumber = 0
         self.single = False
+        self.gameMode = ""
         # Trey - 11/6/2026
         # Names of every minigame that can be selected for a section
         self.minigame_names = ["RPS", "Reaction", "Maze", "Simon", "DDR", "Minesweeper", "Pizza"]
@@ -20,9 +22,21 @@ class Session:
 
     # Start a new session
     def start(self):
+        self.players = []
         self.roundNumber = 1
-        if (len(self.players) == 1):
-            self.single = True
+
+        player1 = Player()
+        player1.userName = "Player 1"
+        player1.userID = 0
+        player1.lives = 3
+        self.addPlayer(player1)
+
+        if not self.single:
+            player2 = Player()
+            player2.userName = "Player 2"
+            player2.userID = 1
+            player2.lives = 3
+            self.addPlayer(player2)
 
     def isSingle(self):
         return self.single
@@ -38,6 +52,10 @@ class Session:
     def isOver(self):
         return self.currentRound >= 6
 
+    # Set the selected game mode
+    def setGameMode(self, gameMode):
+        self.gameMode = gameMode
+        self.single = (gameMode == "single_player")
     # Trey - 11/6/2026
     # Randomly select the minigame for the current section and return its name
     def pickMinigame(self):
