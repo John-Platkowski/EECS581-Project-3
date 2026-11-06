@@ -32,14 +32,15 @@ class Game:
     def switchScreen(self, name):
         self.current = self.screens[name]
 
-<<<<<<< HEAD
     #this starts a game
     def startGame(self, gameMode):
         self.session.setGameMode(gameMode)
         self.session.start()
-        self.switchScreen("t1")
+        if gameMode == "single_player":
+            self.switchScreen("t1")
+        else:
+            self.switchScreen("t2")
         
-=======
     #Trey Timko - 11/6/2026
     #function that takes the selected minigame and starts it
     def startMinigame(self):
@@ -49,7 +50,6 @@ class Game:
         self.screens["minigame"] = minigame
         self.switchScreen("minigame")
 
->>>>>>> main
     #This method runs the main game loop
     def run(self):
         while self.running:
