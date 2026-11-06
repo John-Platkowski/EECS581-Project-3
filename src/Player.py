@@ -1,6 +1,6 @@
 #Jack Larson 11/5/2026
 #Stores information regarding a given player, as well as handles lives management.
-class Playeer:
+class Player:
     #Jack Larson 11/5/2026
     def __init__(self):
         self.userName = "Steve"

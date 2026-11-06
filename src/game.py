@@ -16,18 +16,23 @@ class Game:
 
         #This dictionary stores all of the screens we can switch between
         self.screens = {
+            "menu": MainMenu(self, self.startGame),
             "t1": TestScreen1(self),
             "t2": TestScreen2(self)
         }
-
-        #Set the starting screen
-        self.current = self.screens["t1"]
+        self.current = self.screens["menu"]
         self.running = True
 
     #This method is used to switch between different screens
     def switchScreen(self, name):
         self.current = self.screens[name]
 
+    #this starts a game
+    def startGame(self, gameMode):
+        self.session.setGameMode(gameMode)
+        self.session.start()
+        self.switchScreen("t1")
+        
     #This method runs the main game loop
     def run(self):
         while self.running:
