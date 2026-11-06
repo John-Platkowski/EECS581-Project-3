@@ -1,6 +1,11 @@
 import pygame
 from screens import *
 from session import Session
+import random
+
+#Trey Timko - 11/6/2026
+#Maps each minigame name from Session.pickMinigame() to a class
+minigame_classes = {}
 
 #Tyler Oswald - 11/5/2026
 #This class controls the main game loop
@@ -27,6 +32,15 @@ class Game:
     #This method is used to switch between different screens
     def switchScreen(self, name):
         self.current = self.screens[name]
+
+    #Trey Timko - 11/6/2026
+    #function that takes the selected minigame and starts it
+    def startMinigame(self):
+        name = self.session.pickMinigame()
+        minigameClass = minigame_classes[name]
+        minigame = minigameClass(self, self.session.difficulty, random.randint(0, 99999))
+        self.screens["minigame"] = minigame
+        self.switchScreen("minigame")
 
     #This method runs the main game loop
     def run(self):
