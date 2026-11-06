@@ -1,4 +1,5 @@
 import pygame
+from gameinfo import GameInfo
 
 #Tyler Oswald - 11/5/2026
 #This is a base class that other screens can inherit from
@@ -22,6 +23,10 @@ class Screen:
 #These two test classes were just used to make sure that screen switching works
 #Feel free to delete them or repurpose them into actual screens
 class TestScreen1(Screen):
+    def __init__(self, game):
+        super().__init__(game)
+        self.gameInfo = GameInfo()
+
     def handleEvent(self, event):
         #Pressing any key changes to the other test screen
         if event.type == pygame.KEYDOWN:
@@ -29,6 +34,7 @@ class TestScreen1(Screen):
 
     def draw(self, surface):
         surface.fill((255, 0, 0))
+        self.gameInfo.draw(surface, self.game.session)
 
 
 class TestScreen2(Screen):
