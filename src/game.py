@@ -1,5 +1,6 @@
 import pygame
 from screens import *
+from session import Session
 
 #Tyler Oswald - 11/5/2026
 #This class controls the main game loop
@@ -9,6 +10,9 @@ class Game:
         #Create the main game window 
         self.surface = pygame.display.set_mode((800, 400), pygame.RESIZABLE)
         self.clock = pygame.time.Clock()
+
+        #Starts a new single player/multiplayer session
+        self.session = Session()
 
         #This dictionary stores all of the screens we can switch between
         self.screens = {
