@@ -1,9 +1,6 @@
-<<<<<<< HEAD
-from player import Player
-=======
 import random
+from player import Player
 
->>>>>>> main
 # Lena - 11/6/2026
 # This class manages the game sessions
 class Session:
@@ -14,13 +11,9 @@ class Session:
         self.difficulty = 1
         self.roundNumber = 0
         self.single = False
-<<<<<<< HEAD
-        self.gameMode = ""
-=======
         # Trey - 11/6/2026
         # Names of every minigame that can be selected for a section
         self.minigame_names = ["RPS", "Reaction", "Maze", "Simon", "DDR", "Minesweeper", "Pizza"]
->>>>>>> main
 
     # Add players to the session
     def addPlayer(self, player):
@@ -58,16 +51,9 @@ class Session:
     def isOver(self):
         return self.currentRound >= 6
 
-<<<<<<< HEAD
-    # Set the selected game mode
-    def setGameMode(self, gameMode):
-        self.gameMode = gameMode
-        self.single = (gameMode == "single_player")
-=======
     # Trey - 11/6/2026
     # Randomly select the minigame for the current section and return its name
     def pickMinigame(self):
         if not self.minigames:
             self.minigames = random.sample(self.minigame_names, len(self.minigame_names))
         return self.minigames.pop()
->>>>>>> main
