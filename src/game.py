@@ -29,7 +29,8 @@ class Game:
         self.screens = {
             "menu": MainMenu(self, self.startGame),
             "t1": TestScreen1(self),
-            "t2": TestScreen2(self)
+            "t2": TestScreen2(self),
+            "host": HostScreen(self)
         }
         self.current = self.screens["menu"]
         self.running = True
@@ -45,7 +46,10 @@ class Game:
         if gameMode == "single_player":
             self.switchScreen("t1")
         else:
-            self.switchScreen("t2")
+            #John Platkowski - 11/8/2026
+            #Open a server and wait for the other player before continuing
+            self.session.host()
+            self.switchScreen("host")
         
     #Trey Timko - 11/6/2026
     #function that takes the selected minigame and starts it

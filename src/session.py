@@ -1,4 +1,5 @@
-from player import Player
+from Player import Player
+from network import Server
 import random
 
 # Lena - 11/6/2026
@@ -56,6 +57,12 @@ class Session:
     def setGameMode(self, gameMode):
         self.gameMode = gameMode
         self.single = (gameMode == "single_player")
+
+    # John Platkowski - 11/8/2026
+    # Creates an online session by opening a server for the other player to join
+    def host(self):
+        self.server = Server()
+
     # Trey - 11/6/2026
     # Randomly select the minigame for the current section and return its name
     def pickMinigame(self):

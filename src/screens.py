@@ -127,3 +127,20 @@ class InstructionScreen(Screen):
 
         countdown = self.titleFont.render("Starting in " + str(math.ceil(self.timeLeft)), True, (255, 220, 0))
         surface.blit(countdown, countdown.get_rect(center=(400, 320)))
+
+
+#John Platkowski - 11/8/2026
+#Waits for the other player to join the online session this player created
+class HostScreen(Screen):
+    def __init__(self, game):
+        super().__init__(game)
+        self.font = pygame.font.Font(None, 48)
+
+    def update(self, dt):
+        if self.game.session.server.accept():
+            self.switchScreen("t2")
+
+    def draw(self, surface):
+        surface.fill((30, 30, 50))
+        text = self.font.render("Waiting for an opponent...", True, (255, 255, 255))
+        surface.blit(text, text.get_rect(center=(400, 200)))
