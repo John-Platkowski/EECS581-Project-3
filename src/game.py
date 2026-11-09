@@ -1,6 +1,7 @@
 import pygame
 from screens import *
 from session import Session
+from rps import RPS
 import random
 
 #Nickan Safi 11/6/2026
@@ -8,7 +9,9 @@ import random
 
 #Trey Timko - 11/6/2026
 #Maps each minigame name from Session.pickMinigame() to a class
-minigame_classes = {}
+minigame_classes = {
+    "RPS": RPS
+}
 
 #Tyler Oswald - 11/5/2026
 #This class controls the main game loop
@@ -51,7 +54,10 @@ class Game:
         minigameClass = minigame_classes[name]
         minigame = minigameClass(self, self.session.difficulty, random.randint(0, 99999))
         self.screens["minigame"] = minigame
-        self.switchScreen("minigame")
+        #John Platkowski - 11/8/2026
+        #Show the instructions and countdown first, which then switches to the minigame
+        self.screens["instructions"] = InstructionScreen(self, minigame)
+        self.switchScreen("instructions")
 
     #This method runs the main game loop
     def run(self):

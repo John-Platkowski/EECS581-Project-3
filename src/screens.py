@@ -1,4 +1,5 @@
 import pygame
+import math
 from gameinfo import GameInfo
 
 #Tyler Oswald - 11/5/2026
@@ -95,3 +96,34 @@ class MainMenu(Screen):
 
         surface.blit(singleText, (300, 170))
         surface.blit(onlineText, (320, 270))
+
+
+#John Platkowski - 11/8/2026
+#Shows the selected minigame's instructions and counts down before it starts
+class InstructionScreen(Screen):
+    def __init__(self, game, minigame):
+        super().__init__(game)
+        self.minigame = minigame
+        self.timeLeft = 5
+        self.titleFont = pygame.font.Font(None, 64)
+        self.textFont = pygame.font.Font(None, 32)
+
+    def update(self, dt):
+        self.timeLeft -= dt
+        if self.timeLeft <= 0:
+            self.minigame.start()
+            self.switchScreen("minigame")
+
+    def draw(self, surface):
+        surface.fill((30, 30, 50))
+        title = self.titleFont.render(self.minigame.title, True, (255, 255, 255))
+        surface.blit(title, title.get_rect(center=(400, 80)))
+
+        y = 160
+        for line in self.minigame.instructions.split("\n"):
+            text = self.textFont.render(line, True, (255, 255, 255))
+            surface.blit(text, text.get_rect(center=(400, y)))
+            y += 35
+
+        countdown = self.titleFont.render("Starting in " + str(math.ceil(self.timeLeft)), True, (255, 220, 0))
+        surface.blit(countdown, countdown.get_rect(center=(400, 320)))
