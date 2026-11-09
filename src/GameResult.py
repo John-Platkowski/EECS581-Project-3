@@ -16,7 +16,7 @@ class GameResult:
         #Nickan Safi 11/6/2026
         if self.completed < other.completed:
             return True
-        if self.completed == other.completed and self.score < other.score
+        if self.completed == other.completed and self.score < other.score:
             return True
         if self.completed == other.completed and self.score == other.score and self.progress < other.progress:
             return True
