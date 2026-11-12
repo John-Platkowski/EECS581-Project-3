@@ -1,4 +1,4 @@
-from Player import Player
+from player import Player
 from network import Server
 import random
 

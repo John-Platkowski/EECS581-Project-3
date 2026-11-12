@@ -2,6 +2,7 @@ import pygame
 from screens import *
 from session import Session
 from rps import RPS
+from maze import Maze
 import random
 
 #Nickan Safi 11/6/2026
@@ -10,7 +11,8 @@ import random
 #Trey Timko - 11/6/2026
 #Maps each minigame name from Session.pickMinigame() to a class
 minigame_classes = {
-    "RPS": RPS
+    "RPS": RPS,
+    "Maze": Maze
 }
 
 #Tyler Oswald - 11/5/2026
@@ -53,8 +55,9 @@ class Game:
         
     #Trey Timko - 11/6/2026
     #function that takes the selected minigame and starts it
-    def startMinigame(self):
-        name = self.session.pickMinigame()
+    def startMinigame(self, name=None):
+        if name is None:
+            name = self.session.pickMinigame()
         minigameClass = minigame_classes[name]
         minigame = minigameClass(self, self.session.difficulty, random.randint(0, 99999))
         self.screens["minigame"] = minigame

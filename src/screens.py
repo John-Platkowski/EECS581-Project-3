@@ -23,19 +23,42 @@ class Screen:
 
 #These two test classes were just used to make sure that screen switching works
 #Feel free to delete them or repurpose them into actual screens
+
+# Simple minigame selector for testing individual games
 class TestScreen1(Screen):
     def __init__(self, game):
         super().__init__(game)
-        self.gameInfo = GameInfo()
+        self.titleFont = pygame.font.Font(None, 56)
+        self.buttonFont = pygame.font.Font(None, 36)
+
+        self.minigameNames = ["RPS", "Maze"]
+        # Create one button for each registered minigame
+        self.buttons = {}
+        for i, name in enumerate(self.minigameNames):
+            self.buttons[name] = pygame.Rect(250, 120 + i * 70, 300, 55)
 
     def handleEvent(self, event):
-        #Pressing any key changes to the other test screen
-        if event.type == pygame.KEYDOWN:
-            self.switchScreen("t2")
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            for name, button in self.buttons.items():
+                if button.collidepoint(event.pos):
+                    self.game.startMinigame(name)
 
     def draw(self, surface):
-        surface.fill((255, 0, 0))
-        self.gameInfo.draw(surface, self.game.session)
+        surface.fill((30, 30, 50))
+
+        title = self.titleFont.render(
+            "Select a Minigame", True, (255, 255, 255)
+        )
+        surface.blit(title, title.get_rect(center=(400, 65)))
+
+        for name, button in self.buttons.items():
+            pygame.draw.rect(surface, (50, 100, 200), button)
+
+            text = self.buttonFont.render(
+                name, True, (255, 255, 255)
+            )
+            surface.blit(text, text.get_rect(center=button.center))
+
 
 
 class TestScreen2(Screen):
