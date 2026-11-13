@@ -23,3 +23,36 @@ class Server:
             except BlockingIOError:
                 return False
         return True
+
+#Trey - 11/13/2026
+#class representing a client
+class Client:
+    def __init__(self, address):
+        self.address = address
+        self.connection = None
+    
+    #try to connect to the host, returns true if succesful, returns false on failure
+    def connect(self):
+        try:
+            self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.connection.settimeout(3)
+            self.connection.connect((self.address, PORT))
+            self.connection.setblocking(False)
+            return True
+        except OSError:
+            self.connection = None
+            return False
+
+
+#Trey - 11/13/2026
+#Return local ip address, it will be used as the session ID
+def getIP():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 1))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except OSError:
+        s.close()
+        return "127.0.0.1"

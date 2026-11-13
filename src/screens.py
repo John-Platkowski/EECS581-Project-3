@@ -1,6 +1,8 @@
 import pygame
 import math
 from gameinfo import GameInfo
+from network import getIP
+from network import Client
 
 #Tyler Oswald - 11/5/2026
 #This is a base class that other screens can inherit from
@@ -88,16 +90,20 @@ class MainMenu(Screen):
         self.titleFont = pygame.font.Font(None, 64)
         self.buttonFont = pygame.font.Font(None, 40)
 
-        self.singleButton = pygame.Rect(250, 150, 300, 70)
-        self.onlineButton = pygame.Rect(250, 250, 300, 70)
+        self.singleButton = pygame.Rect(250, 120, 300, 70)
+        self.hostButton = pygame.Rect(250, 210, 300, 70)
+        self.joinButton = pygame.Rect(250, 300, 300, 70)
 
     def handleEvent(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.singleButton.collidepoint(event.pos):
                 self.startGameCallback("single_player")
 
-            elif self.onlineButton.collidepoint(event.pos):
-                self.startGameCallback("online_1v1")
+            elif self.hostButton.collidepoint(event.pos):
+                self.startGameCallback("host")
+
+            elif self.joinButton.collidepoint(event.pos):
+                self.game.switchScreen("join")
 
     def draw(self, surface):
         surface.fill((30, 30, 50))
@@ -108,17 +114,23 @@ class MainMenu(Screen):
         surface.blit(title, (250, 50))
 
         pygame.draw.rect(surface, (50, 100, 200), self.singleButton)
-        pygame.draw.rect(surface, (50, 100, 200), self.onlineButton)
+        pygame.draw.rect(surface, (50, 100, 200), self.hostButton)
+        pygame.draw.rect(surface, (50, 100, 200), self.joinButton)
 
         singleText = self.buttonFont.render(
             "Single Player", True, (255, 255, 255)
         )
-        onlineText = self.buttonFont.render(
-            "Online 1v1", True, (255, 255, 255)
+        hostText = self.buttonFont.render(
+            "Host Game", True, (255, 255, 255)
+        )
+        joinText = self.buttonFont.render(
+            "Join Game", True, (255, 255, 255)
         )
 
-        surface.blit(singleText, (300, 170))
-        surface.blit(onlineText, (320, 270))
+        surface.blit(singleText, (300, 140))
+        surface.blit(hostText, (320, 230))
+        surface.blit(joinText, (320, 320))
+
 
 
 #John Platkowski - 11/8/2026
@@ -158,6 +170,7 @@ class HostScreen(Screen):
     def __init__(self, game):
         super().__init__(game)
         self.font = pygame.font.Font(None, 48)
+        self.sID = getIP()
 
     def update(self, dt):
         if self.game.session.server.accept():
@@ -167,3 +180,44 @@ class HostScreen(Screen):
         surface.fill((30, 30, 50))
         text = self.font.render("Waiting for an opponent...", True, (255, 255, 255))
         surface.blit(text, text.get_rect(center=(400, 200)))
+
+        #Trey - 11/13/2026
+        #show the id text
+        idText = self.font.render("Session ID: " + self.sID, True, (255, 255, 255))
+        surface.blit(idText, idText.get_rect(center=(400, 260)))
+
+#Trey - 11/13/2026
+#Screen to handle joining an online session
+class JoinScreen(Screen):
+    def __init__(self, game):
+        super().__init__(game)
+        self.font = pygame.font.Font(None, 48)
+        self.sessionID = ""
+        self.error = ""
+
+    def handleEvent(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_BACKSPACE:
+                self.sessionID = self.sessionID[:-1]
+                self.error = ""
+            elif event.key == pygame.K_RETURN:
+                client = Client(self.sessionID)
+                if client.connect():
+                    self.game.session.client = client
+                    self.switchScreen("t2")
+                else:
+                    self.error = "Connection failed"
+            elif event.unicode in "0123456789.":
+                self.sessionID += event.unicode
+                self.error= ""
+
+    def draw(self, surface):
+        surface.fill((30, 30, 50))
+
+        prompt = self.font.render("Enter session ID:", True, (255, 255, 255))
+        surface.blit(prompt, prompt.get_rect(center=(400, 160)))
+        typed = self.font.render(self.sessionID, True, (255, 255, 255))
+        surface.blit(typed, typed.get_rect(center=(400, 220)))
+        if self.error != "":
+            errorText = self.font.render(self.error, True, (255, 80, 80))
+            surface.blit(errorText, errorText.get_rect(center=(400, 280)))

@@ -32,7 +32,8 @@ class Game:
             "menu": MainMenu(self, self.startGame),
             "t1": TestScreen1(self),
             "t2": TestScreen2(self),
-            "host": HostScreen(self)
+            "host": HostScreen(self),
+            "join": JoinScreen(self)
         }
         self.current = self.screens["menu"]
         self.running = True
