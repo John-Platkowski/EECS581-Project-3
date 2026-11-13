@@ -9,10 +9,12 @@ from network import Client
 class Screen:
     def __init__(self, game):
         self.game = game
+        self.start_time = 0
 
-    #This function can be called to switch to a new screen
-    def switchScreen(self, screenName):
-        self.game.switchScreen(screenName)
+        self.enter_duration = 500
+        self.wait_duration = 2300
+        self.exit_duration = 500
+    
 
     #These methods should be overridden in the child class
     def handleEvent(self, event): 
@@ -35,7 +37,7 @@ class TestScreen1(Screen):
         self.titleFont = pygame.font.Font(None, 56)
         self.buttonFont = pygame.font.Font(None, 36)
 
-        self.minigameNames = ["RPS", "Maze"]
+        self.minigameNames = ["RPS", "Maze", "Reaction"]
         # Create one button for each registered minigame
         self.buttons = {}
         for i, name in enumerate(self.minigameNames):
@@ -69,7 +71,7 @@ class TestScreen2(Screen):
     #Pressing any key changes to the other test screen
     def handleEvent(self, event):
         if event.type == pygame.KEYDOWN:
-            self.switchScreen("t1")
+            self.game.startTransition("Pizza Cutting", 2, "t1")
 
     def draw(self, surface):
         surface.fill((0, 0, 255))
@@ -145,25 +147,83 @@ class InstructionScreen(Screen):
         self.titleFont = pygame.font.Font(None, 64)
         self.textFont = pygame.font.Font(None, 32)
 
+        self.virtual_surface = pygame.Surface((800, 400))
+
+        self.max_zoom = 1.5
+        self.phase = "enter"
+        self.phase_start = pygame.time.get_ticks()
+
+    #Lena Palmieri - 11/12/2026
+    #Updates timings for all phases of the animation
     def update(self, dt):
-        self.timeLeft -= dt
-        if self.timeLeft <= 0:
-            self.minigame.start()
-            self.switchScreen("minigame")
+        elapsed = pygame.time.get_ticks() - self.phase_start
+
+        if self.phase == "enter":
+            if elapsed >= self.enter_duration:
+                self.phase = "wait"
+                self.phase_start = pygame.time.get_ticks()
+
+        elif self.phase == "wait":
+            self.timeLeft -= dt
+
+            if self.timeLeft <= 0:
+                self.phase = "exit"
+                self.phase_start = pygame.time.get_ticks()
+
+        elif self.phase == "exit":
+            if elapsed >= self.exit_duration:
+                self.minigame.start()
+                self.game.switchScreen("minigame")
+
+    #Lena Palmieri - 11/12/2026
+    #Adjusts the zoom settings for all the phases
+    def get_zoom(self):
+        elapsed = pygame.time.get_ticks() - self.phase_start
+
+        if self.phase == "enter":
+            progress = min(elapsed / self.enter_duration, 1.0)
+            return self.max_zoom - (self.max_zoom - 1.0) * progress
+
+        elif self.phase == "wait":
+            return 1.0
+
+        elif self.phase == "exit":
+            progress = min(elapsed / self.exit_duration, 1.0)
+            return 1.0 + (self.max_zoom - 1.0) * progress
+
+        return 1.0
 
     def draw(self, surface):
-        surface.fill((30, 30, 50))
+        self.virtual_surface.fill((30, 30, 50))
         title = self.titleFont.render(self.minigame.title, True, (255, 255, 255))
-        surface.blit(title, title.get_rect(center=(400, 80)))
+        self.virtual_surface.blit(title, title.get_rect(center=(400, 80)))
 
         y = 160
         for line in self.minigame.instructions.split("\n"):
             text = self.textFont.render(line, True, (255, 255, 255))
-            surface.blit(text, text.get_rect(center=(400, y)))
+            self.virtual_surface.blit(text, text.get_rect(center=(400, y)))
             y += 35
 
         countdown = self.titleFont.render("Starting in " + str(math.ceil(self.timeLeft)), True, (255, 220, 0))
-        surface.blit(countdown, countdown.get_rect(center=(400, 320)))
+        self.virtual_surface.blit(countdown, countdown.get_rect(center=(400, 320)))
+
+        #Lena Palmieri - 11/12/2026
+        #Calculates the zoom features
+
+        screenWidth, screenHeight = surface.get_size()
+
+        scale = self.get_zoom()
+
+        scaledWidth = int(screenWidth * scale)
+        scaledHeight = int(screenHeight * scale)
+
+        scaled_surface = pygame.transform.smoothscale(self.virtual_surface, (scaledWidth, scaledHeight))
+
+        x = (surface.get_width() - scaledWidth) // 2
+        y = (surface.get_height() - scaledHeight) // 2
+
+        surface.fill((0, 0, 0))
+        surface.blit(scaled_surface, (x, y))
 
 
 #John Platkowski - 11/8/2026
@@ -224,3 +284,143 @@ class JoinScreen(Screen):
         if self.error != "":
             errorText = self.font.render(self.error, True, (255, 80, 80))
             surface.blit(errorText, errorText.get_rect(center=(400, 280)))
+
+        #Trey - 11/13/2026
+        #show the id text
+        idText = self.font.render("Session ID: " + self.sID, True, (255, 255, 255))
+        surface.blit(idText, idText.get_rect(center=(400, 260)))
+
+#Trey - 11/13/2026
+#Screen to handle joining an online session
+class JoinScreen(Screen):
+    def __init__(self, game):
+        super().__init__(game)
+        self.font = pygame.font.Font(None, 48)
+        self.sessionID = ""
+        self.error = ""
+
+    def handleEvent(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_BACKSPACE:
+                self.sessionID = self.sessionID[:-1]
+                self.error = ""
+            elif event.key == pygame.K_RETURN:
+                client = Client(self.sessionID)
+                if client.connect():
+                    self.game.session.client = client
+                    self.switchScreen("t2")
+                else:
+                    self.error = "Connection failed"
+            elif event.unicode in "0123456789.":
+                self.sessionID += event.unicode
+                self.error= ""
+
+    def draw(self, surface):
+        surface.fill((30, 30, 50))
+
+        prompt = self.font.render("Enter session ID:", True, (255, 255, 255))
+        surface.blit(prompt, prompt.get_rect(center=(400, 160)))
+        typed = self.font.render(self.sessionID, True, (255, 255, 255))
+        surface.blit(typed, typed.get_rect(center=(400, 220)))
+        if self.error != "":
+            errorText = self.font.render(self.error, True, (255, 80, 80))
+            surface.blit(errorText, errorText.get_rect(center=(400, 280)))
+
+#Lena Palmieri - 11/5/2026
+#Displays the minigame name and round number when transitioning between screens
+class TransitionScreen(Screen):
+    def __init__(self, game):
+        super().__init__(game)
+
+        self.title_font = pygame.font.SysFont(None, 64)
+        self.info_font = pygame.font.SysFont(None, 40)
+
+        self.virtual_surface = pygame.Surface((800, 400))
+
+        self.phase = "enter"
+        self.max_zoom = 1.5
+
+        self.start_time = 0
+        self.enter_transition = 500
+        self.animation = 1000
+        self.end_transition = 500
+
+        self.game_name = ""
+        self.round_number = 1
+
+    def on_enter(self, game_name, round_number, next_screen):
+        self.game_name = game_name
+        self.round_number = round_number
+        self.next_screen = next_screen
+
+        self.phase = "enter"
+        self.phase_start = pygame.time.get_ticks()
+
+    def update(self, dt):
+        elapsed = pygame.time.get_ticks() - self.phase_start
+
+        if self.phase == "enter":
+            if elapsed >= self.enter_duration:
+                self.phase = "wait"
+                self.phase_start = pygame.time.get_ticks()
+
+        elif self.phase == "wait":
+            if elapsed >= self.wait_duration:
+                self.phase = "exit"
+                self.phase_start = pygame.time.get_ticks()
+
+        elif self.phase == "exit":
+            if elapsed >= self.exit_duration:
+                self.game.switchScreen(self.next_screen)
+
+    def get_zoom(self):
+        elapsed = pygame.time.get_ticks() - self.phase_start
+
+        if self.phase == "enter":
+            progress = min(elapsed / self.enter_duration, 1.0)
+            return self.max_zoom - (self.max_zoom - 1.0) * progress
+
+        elif self.phase == "wait":
+            return 1.0
+
+        elif self.phase == "exit":
+            progress = min(elapsed / self.exit_duration, 1.0)
+            return 1.0 + (self.max_zoom - 1.0) * progress
+
+        return 1.0
+
+    def draw(self, surface):
+        self.virtual_surface.fill((25, 25, 25))
+
+        title = self.title_font.render(
+            self.game_name, True, (255, 255, 255)
+        )
+
+        round_text = self.info_font.render(
+            f"Round {self.round_number}", True, (200, 200, 200)
+        )
+
+        self.virtual_surface.blit(
+            title, title.get_rect(center=(400, 160))
+        )
+
+        self.virtual_surface.blit(
+            round_text, round_text.get_rect(center=(400, 230))
+        )
+
+        # Get current zoom
+        scale = self.get_zoom()
+
+        width = int(800 * scale)
+        height = int(400 * scale)
+
+        scaled_surface = pygame.transform.smoothscale(
+            self.virtual_surface, (width, height)
+        )
+
+        # Center the scaled surface
+        x = (surface.get_width() - width) // 2
+        y = (surface.get_height() - height) // 2
+
+        surface.fill((0, 0, 0))
+        surface.blit(scaled_surface, (x, y))

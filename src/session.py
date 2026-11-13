@@ -2,7 +2,8 @@ from player import Player
 from network import Server
 import random
 
-# Lena - 11/6/2026
+# Lena Palmieri - 11/6/2026
+
 # This class manages the game sessions
 class Session:
     def __init__(self):

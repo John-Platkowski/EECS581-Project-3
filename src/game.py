@@ -3,6 +3,7 @@ from screens import *
 from session import Session
 from rps import RPS
 from maze import Maze
+from reaction import Reaction
 import random
 
 #Nickan Safi 11/6/2026
@@ -12,7 +13,8 @@ import random
 #Maps each minigame name from Session.pickMinigame() to a class
 minigame_classes = {
     "RPS": RPS,
-    "Maze": Maze
+    "Maze": Maze,
+    "Reaction": Reaction
 }
 
 #Tyler Oswald - 11/5/2026
@@ -33,14 +35,21 @@ class Game:
             "t1": TestScreen1(self),
             "t2": TestScreen2(self),
             "host": HostScreen(self),
+            "transition": TransitionScreen(self),
             "join": JoinScreen(self)
         }
         self.current = self.screens["menu"]
         self.running = True
 
-    #This method is used to switch between different screens
-    def switchScreen(self, name):
-        self.current = self.screens[name]
+    def switchScreen(self, screenName):
+        self.current = self.screens[screenName]
+
+    # Switches between the different screens with a transition that displays the game name and current round
+    def startTransition(self, game_name, round_number, next_screen):
+        transition = self.screens["transition"]
+
+        transition.on_enter(game_name, round_number, next_screen)
+        self.switchScreen("transition")
 
     #this starts a game
     def startGame(self, gameMode):
@@ -66,6 +75,18 @@ class Game:
         #Show the instructions and countdown first, which then switches to the minigame
         self.screens["instructions"] = InstructionScreen(self, minigame)
         self.switchScreen("instructions")
+
+    #this starts a game
+    def startGame(self, gameMode):
+        self.session.setGameMode(gameMode)
+        self.session.start()
+        if gameMode == "single_player":
+            self.switchScreen("t1")
+        else:
+            #John Platkowski - 11/8/2026
+            #Open a server and wait for the other player before continuing
+            self.session.host()
+            self.switchScreen("host")
 
     #This method runs the main game loop
     def run(self):
