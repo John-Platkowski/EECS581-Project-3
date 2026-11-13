@@ -5,6 +5,7 @@ from GameResult import GameResult
 
 #Trey - 11/6/2026
 #Base class for all minigames. set self.finished = True when the game ends.
+#Nickan Safi 11/13/26
 class Minigame(Screen):
     #John Platkowski - 11/8/2026
     #Shown on the instruction screen before the minigame starts
@@ -30,6 +31,7 @@ class Minigame(Screen):
 
     #John Platkowski - 11/8/2026
     #Ends the minigame and player finish time, timed minigames should call this
+    #Nickan Safi 11/13/26: send game result over network
     def finish(self, completed=True):
         self.finished = True
         self.result.completed = completed

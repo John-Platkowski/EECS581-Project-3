@@ -1,5 +1,6 @@
 #John Platkowski - November 8, 2026
 #Handles the connection between the two players of an online session
+#Nickan Safi 11/13/26
 import socket
 import queue
 import threading
@@ -9,10 +10,11 @@ import json
 PORT = 5555
 
 #Created by the host, waits for the other player to connect
+#Nickan Safi 11/13/26: add connection activity checks
 class Server:
     def __init__(self):
         self.connection = None
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.TCP_KEEPALIVE)
         self.socket.bind(("", PORT))
         self.socket.listen(1)
         self.socket.setblocking(False)
@@ -88,10 +90,17 @@ class Connection:
                     self.messageQueue.put(json.loads(message))
                 except ValueError:
                     pass
+        #Nickan Safi 11/13/26: do not crash on timeout
+        except TimeoutError:
+            pass
+        #Nickan Safi 11/13/26: do not crash on connection reset
+        except ConnectionResetError:
+            pass
         except OSError:
             pass
         self.connected = False
     #Method for getting all the messages that are currently in the queue
+    #Nickan Safi 11/13/26: use validity check for messages
     def getMessages(self):
         received = []
         while not self.messageQueue.empty():
@@ -102,6 +111,7 @@ class Connection:
                 print("Invalid message received")
         return received
 
+    #Nickan Safi 11/13/26: add validity check for messages
     def isValid(m):
         try:
             j = json.loads(m)
