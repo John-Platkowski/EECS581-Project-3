@@ -1,4 +1,5 @@
 import pygame
+import json
 from screens import Screen
 from GameResult import GameResult
 
@@ -34,3 +35,4 @@ class Minigame(Screen):
         self.result.completed = completed
         if completed:
             self.result.time = (pygame.time.get_ticks() - self.startTime) / 1000
+        self.screen.game.session.send({"type":"result","value":json.dumps(self.result)})

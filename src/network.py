@@ -95,5 +95,21 @@ class Connection:
     def getMessages(self):
         received = []
         while not self.messageQueue.empty():
-            received.append(self.messageQueue.get())
+            m = self.messageQueue.get()
+            if self.isValid(m):
+                received.append(m)
+            else:
+                print("Invalid message received")
         return received
+
+    def isValid(m):
+        try:
+            j = json.loads(m)
+        except:
+            return False
+        if j.type == "result":
+            try:
+                r = json.loads(j.result)
+            except:
+                return False
+        return True
