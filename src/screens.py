@@ -15,6 +15,8 @@ class Screen:
     #These methods should be overridden in the child class
     def handleEvent(self, event): 
         pass
+    def handleNetMessage(self, message):
+        pass
     def update(self, dt): 
         pass
     def draw(self, surface): 
@@ -161,6 +163,7 @@ class HostScreen(Screen):
 
     def update(self, dt):
         if self.game.session.server.accept():
+            self.game.session.connection = self.game.session.server.connection
             self.switchScreen("t2")
 
     def draw(self, surface):
