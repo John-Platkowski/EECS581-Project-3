@@ -57,10 +57,25 @@ class RPS(Minigame):
     #Locks in the player's choice and determines the round outcome
     def pick(self, choice):
         self.choice = choice
-        #Add opponent here
-        self.opponentChoice = random.Random(self.seed).choice(["rock", "paper", "scissors"])
-        self.outcome = rpsOutcome(self.choice, self.opponentChoice)
+        if self.game.session.isSingle():
+            self.opponentChoice = random.Random(self.seed).choice(["rock", "paper", "scissors"])
+        else:
+            self.game.session.send({"type": "rps_choice", "choice": choice})
 
+        self.determineWin()
+    #Tyler Oswald - 11/13/2026 
+    #Handle incoming messages from other player
+    def handleNetMessage(self, message):
+        if message.get("type") == "rps_choice":
+            self.opponentChoice = message.get("choice")
+            self.determineWin()
+
+    #Determines a winner from both the opponent and player choices
+    #Moved code from pick to here
+    def determineWin(self):
+        if self.choice is None or self.opponentChoice is None:
+            return
+        self.outcome = rpsOutcome(self.choice, self.opponentChoice)
         #Normalize results
         self.result.completed = True
         self.result.score = 1 if self.outcome == 1 else 0
@@ -77,6 +92,9 @@ class RPS(Minigame):
             self.drawChoice(surface, "paper", (400, 200), self.paperButton.collidepoint(mouse))
             self.drawChoice(surface, "scissors", (600, 200), self.scissorsButton.collidepoint(mouse))
         else:
+            if self.opponentChoice is None:
+                self.drawText(surface, "Waiting for opponent...", (400, 200))
+                return
             #Show both picks side by side with the outcome below
             self.drawText(surface, "You", (200, 60))
             self.drawText(surface, "Opponent", (600, 60))

@@ -79,6 +79,9 @@ class Game:
                     self.running = False
                 else:
                     self.current.handleEvent(event)
+            if self.session.connection:
+                for message in self.session.connection.getMessages():
+                    self.current.handleNetMessage(message)
 
             #Update the current screen
             self.current.update(dt)

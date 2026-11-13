@@ -1,4 +1,4 @@
-from player import Player
+from Player import Player
 from network import Server
 import random
 
@@ -6,6 +6,7 @@ import random
 # This class manages the game sessions
 class Session:
     def __init__(self):
+        self.connection = None
         self.players = []
         self.minigames = [] #list with random order of event games
         self.server = ""
@@ -62,6 +63,12 @@ class Session:
     # Creates an online session by opening a server for the other player to join
     def host(self):
         self.server = Server()
+
+    #Tyler Oswald - 11/13/2026
+    #Sends a message to other player session
+    def send(self, message):
+        if self.connection:
+            self.connection.send(message)
 
     # Trey - 11/6/2026
     # Randomly select the minigame for the current section and return its name
