@@ -213,8 +213,11 @@ class Minesweeper:
         flag_count = sum(row.count(FLAG) for row in self.visited)
         return mine_count - flag_count
 
+    #Tyler - 11/15/2026
+    #Method for finding the current progress of a given game
     def Progress(self):
         mine_count = sum(row.count(MINE) for row in self.matrix)
         safe = self.x_size * self.y_size - mine_count
         revealed = sum(1 for row in self.visited for cell in row if cell is not UNVISITED and cell >= 0)
+        #Progress is calcualted as the number of opened cells divided by the total possible openable cells
         return revealed / safe

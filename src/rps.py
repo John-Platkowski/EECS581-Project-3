@@ -63,7 +63,6 @@ class RPS(Minigame):
             self.game.session.send({"type": "rps_choice", "choice": choice})
 
         self.determineWin()
-           
     #Tyler Oswald - 11/13/2026 
     #Handle incoming messages from other player
     def handleNetMessage(self, message):
