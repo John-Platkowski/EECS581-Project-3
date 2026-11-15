@@ -4,6 +4,7 @@ from session import Session
 from rps import RPS
 from maze import Maze
 from reaction import Reaction
+from minesweeper import Minesweeper
 import random
 
 #Nickan Safi 11/6/2026
@@ -14,7 +15,8 @@ import random
 minigame_classes = {
     "RPS": RPS,
     "Maze": Maze,
-    "Reaction": Reaction
+    "Reaction": Reaction,
+    "Minesweeper": Minesweeper
 }
 
 #Tyler Oswald - 11/5/2026
