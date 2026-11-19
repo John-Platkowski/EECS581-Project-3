@@ -89,7 +89,7 @@ class TestScreen2(Screen):
 #   November 6, 2026
 class MainMenu(Screen):
     def __init__(self, game, startGameCallback):
-        self.game = game
+        super().__init__(game)
         self.startGameCallback = startGameCallback
         self.titleFont = pygame.font.Font(None, 64)
         self.buttonFont = pygame.font.Font(None, 40)
@@ -143,6 +143,7 @@ class InstructionScreen(Screen):
     def __init__(self, game, minigame):
         super().__init__(game)
         self.minigame = minigame
+        self.gameInfo = GameInfo()
         self.timeLeft = 5
         self.titleFont = pygame.font.Font(None, 64)
         self.textFont = pygame.font.Font(None, 32)
@@ -225,6 +226,9 @@ class InstructionScreen(Screen):
         surface.fill((0, 0, 0))
         surface.blit(scaled_surface, (x, y))
 
+        #Draw game info
+        self.gameInfo.draw(surface, self.game.session)
+
 
 #John Platkowski - 11/8/2026
 #Waits for the other player to join the online session this player created
@@ -237,7 +241,7 @@ class HostScreen(Screen):
     def update(self, dt):
         if self.game.session.server.accept():
             self.game.session.connection = self.game.session.server.connection
-            self.switchScreen("t2")
+            self.game.switchScreen("t2")
 
     def draw(self, surface):
         surface.fill((30, 30, 50))
@@ -267,48 +271,8 @@ class JoinScreen(Screen):
                 client = Client(self.sessionID)
                 if client.connect():
                     self.game.session.client = client
-                    self.switchScreen("t2")
-                else:
-                    self.error = "Connection failed"
-            elif event.unicode in "0123456789.":
-                self.sessionID += event.unicode
-                self.error= ""
-
-    def draw(self, surface):
-        surface.fill((30, 30, 50))
-
-        prompt = self.font.render("Enter session ID:", True, (255, 255, 255))
-        surface.blit(prompt, prompt.get_rect(center=(400, 160)))
-        typed = self.font.render(self.sessionID, True, (255, 255, 255))
-        surface.blit(typed, typed.get_rect(center=(400, 220)))
-        if self.error != "":
-            errorText = self.font.render(self.error, True, (255, 80, 80))
-            surface.blit(errorText, errorText.get_rect(center=(400, 280)))
-
-        #Trey - 11/13/2026
-        #show the id text
-        idText = self.font.render("Session ID: " + self.sID, True, (255, 255, 255))
-        surface.blit(idText, idText.get_rect(center=(400, 260)))
-
-#Trey - 11/13/2026
-#Screen to handle joining an online session
-class JoinScreen(Screen):
-    def __init__(self, game):
-        super().__init__(game)
-        self.font = pygame.font.Font(None, 48)
-        self.sessionID = ""
-        self.error = ""
-
-    def handleEvent(self, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_BACKSPACE:
-                self.sessionID = self.sessionID[:-1]
-                self.error = ""
-            elif event.key == pygame.K_RETURN:
-                client = Client(self.sessionID)
-                if client.connect():
-                    self.game.session.client = client
-                    self.switchScreen("t2")
+                    self.game.session.connection = client.connection
+                    self.game.switchScreen("t2")
                 else:
                     self.error = "Connection failed"
             elif event.unicode in "0123456789.":

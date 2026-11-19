@@ -131,3 +131,4 @@ class Maze(Minigame):
             f"Time: {elapsed:.2f}s", True, (255, 255, 255)
         )
         surface.blit(timerText, (10, 10))
+        self.gameInfo.draw(surface, self.game.session)

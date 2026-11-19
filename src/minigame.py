@@ -1,6 +1,7 @@
 import pygame
 import json
 from screens import Screen
+from gameinfo import GameInfo
 from GameResult import GameResult
 
 #Trey - 11/6/2026
@@ -18,6 +19,7 @@ class Minigame(Screen):
         self.seed = seed
         self.result = GameResult()
         self.finished = False
+        self.gameInfo = GameInfo()
         self.startTime = 0
 
     #a getter function for the result of the game
@@ -37,4 +39,5 @@ class Minigame(Screen):
         self.result.completed = completed
         if completed:
             self.result.time = (pygame.time.get_ticks() - self.startTime) / 1000
-        self.game.session.send({"type": "result", "value": vars(self.result)})
+        self.game.session.send({"type": "result", "player": self.game.session.localPlayer, "value": vars(self.result)})
+

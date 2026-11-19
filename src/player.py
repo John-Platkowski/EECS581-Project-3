@@ -2,10 +2,13 @@
 #Stores information regarding a given player, as well as handles lives management.
 class Player:
     #Jack Larson 11/5/2026
-    def __init__(self):
-        self.userName = "Steve"
-        self.userID = -1
-        self.lives = 0
+
+    #joshua - 11/19.2026
+    #clear default values & initalization 
+    def __init__(self, username = "Steve", userID = -1, lives = 3):
+        self.userName = username
+        self.userID = userID
+        self.lives = lives
 
     #Jack Larson 11/5/2026
     #Removes a life and checks for total loss.

@@ -1,5 +1,9 @@
 from player import Player
 from network import Server
+from rps import RPS
+from maze import Maze
+from reaction import Reaction
+from minesweeper import Minesweeper
 import random
 
 # Lena Palmieri - 11/6/2026
@@ -15,9 +19,23 @@ class Session:
         self.roundNumber = 0
         self.single = False
         self.gameMode = ""
+
+        self.pendingResults = {}
+        self.isHost = False
+        self.localPlayer = 0
+
+
         # Trey - 11/6/2026
         # Names of every minigame that can be selected for a section
-        self.minigame_names = ["RPS", "Reaction", "Maze", "Simon", "DDR", "Minesweeper", "Pizza"]
+
+        # Joshua - 11/19/2026
+        #moved to be hash that is the list of classes. 
+        self.minigame_classes = {
+            "RPS": RPS,
+            "Maze": Maze,
+            "Reaction": Reaction,
+            "Minesweeper": Minesweeper
+        }
 
     # Add players to the session
     def addPlayer(self, player):
@@ -27,18 +45,14 @@ class Session:
     def start(self):
         self.players = []
         self.roundNumber = 1
+        self.minigames = []
+        self.clearResults()
 
-        player1 = Player()
-        player1.userName = "Player 1"
-        player1.userID = 0
-        player1.lives = 3
+        player1 = Player("Player 1", 0, 3)
         self.addPlayer(player1)
 
         if not self.single:
-            player2 = Player()
-            player2.userName = "Player 2"
-            player2.userID = 1
-            player2.lives = 3
+            player2 = Player("Player 2", 1, 3)
             self.addPlayer(player2)
 
     def isSingle(self):
@@ -46,14 +60,15 @@ class Session:
 
     # Advance to the next round
     def nextRound(self):
-        if self.currentRound < 6:
-            self.currentRound += 1
-        else:
-            self.isOver()
+        if self.roundNumber < 6:
+            self.roundNumber += 1
+            return True
+        
+        return False
 
     # Check whether the session has finished
     def isOver(self):
-        return self.currentRound >= 6
+        return self.roundNumber >= 6
 
     # Set the selected game mode
     def setGameMode(self, gameMode):
@@ -71,9 +86,35 @@ class Session:
         if self.connection:
             self.connection.send(message)
 
-    # Trey - 11/6/2026
+    # Trey - 11/6/2026 & joshua - 11/19/2026
     # Randomly select the minigame for the current section and return its name
     def pickMinigame(self):
         if not self.minigames:
-            self.minigames = random.sample(self.minigame_names, len(self.minigame_names))
+            self.minigames = random.sample(
+                list(self.minigame_classes.keys()),
+                len(self.minigame_classes)
+            )
         return self.minigames.pop()
+
+
+    #Joshua & Nickan 11/19/2026
+    #handles the results of a game
+    def processResults(self, result_a, result_b):
+        if result_a < result_b:
+            self.players[0].loseLife()
+        elif result_b < result_a:
+            self.players[1].loseLife()
+
+        if any(player.lives <= 0 for player in self.players):
+            return False
+
+        return self.nextRound()
+
+    def recordResult(self, player, result):
+        self.pendingResults[player] = result
+
+    def hasAllResults(self):
+        return len(self.pendingResults) == len(self.players)
+
+    def clearResults(self):
+        self.pendingResults = {}

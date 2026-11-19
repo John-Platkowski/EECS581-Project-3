@@ -77,9 +77,8 @@ class RPS(Minigame):
             return
         self.outcome = rpsOutcome(self.choice, self.opponentChoice)
         #Normalize results
-        self.result.completed = True
         self.result.score = 1 if self.outcome == 1 else 0
-        self.finished = True
+        self.finish()
 
     def draw(self, surface):
         surface.fill((30, 30, 50))
@@ -107,6 +106,7 @@ class RPS(Minigame):
                 self.drawText(surface, "It's a tie!", (400, 340))
             else:
                 self.drawText(surface, "You lose!", (400, 340))
+        self.gameInfo.draw(surface, self.game.session)
 
     #Draws a choice's sprite centered on a point, using the highlighted sprite if highlighted is True
     def drawChoice(self, surface, choice, center, highlighted):

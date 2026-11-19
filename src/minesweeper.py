@@ -119,3 +119,5 @@ class Minesweeper(Minigame):
                 elif cell is not UNVISITED and cell > 0:
                     number = self.font.render(str(cell), True, NUMBER_COLORS[cell])
                     surface.blit(number, number.get_rect(center=(cx, cy)))
+
+        self.gameInfo.draw(surface, self.game.session)

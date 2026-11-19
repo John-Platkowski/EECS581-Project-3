@@ -165,7 +165,7 @@ class Reaction(Minigame):
             (255, 220, 0)
         )
         surface.blit(bestText, (20, 105))
-
+        self.gameInfo.draw(surface, self.game.session)
         # Main game area
         if self.state == "waiting":
             message = self.largeFont.render(

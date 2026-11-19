@@ -1,23 +1,10 @@
 import pygame
 from screens import *
 from session import Session
-from rps import RPS
-from maze import Maze
-from reaction import Reaction
-from minesweeper import Minesweeper
 import random
 
 #Nickan Safi 11/6/2026
 #Added handling for results
-
-#Trey Timko - 11/6/2026
-#Maps each minigame name from Session.pickMinigame() to a class
-minigame_classes = {
-    "RPS": RPS,
-    "Maze": Maze,
-    "Reaction": Reaction,
-    "Minesweeper": Minesweeper
-}
 
 #Tyler Oswald - 11/5/2026
 #This class controls the main game loop
@@ -30,6 +17,12 @@ class Game:
 
         #Starts a new single player/multiplayer session
         self.session = Session()
+        self.roundFinished = False
+
+        #pause before processing next minigame
+        self.roundDelay = 0
+        self.nextMinigame = None
+        self.nextSeed = None
 
         #This dictionary stores all of the screens we can switch between
         self.screens = {
@@ -38,7 +31,7 @@ class Game:
             "t2": TestScreen2(self),
             "host": HostScreen(self),
             "transition": TransitionScreen(self),
-            "join": JoinScreen(self)
+            "join": JoinScreen(self),
         }
         self.current = self.screens["menu"]
         self.running = True
@@ -65,31 +58,87 @@ class Game:
             self.session.host()
             self.switchScreen("host")
         
-    #Trey Timko - 11/6/2026
+    #Trey Timko - 11/6/2026 & Joshua - 11/19/2026
     #function that takes the selected minigame and starts it
-    def startMinigame(self, name=None):
+    def startMinigame(self, name=None, seed = None):
         if name is None:
             name = self.session.pickMinigame()
-        minigameClass = minigame_classes[name]
-        minigame = minigameClass(self, self.session.difficulty, random.randint(0, 99999))
+
+        if seed is None:
+            seed = random.randint(0, 99999)
+
+        minigameClass = self.session.minigame_classes[name]
+        minigame = minigameClass(self, self.session.difficulty, seed)
         self.screens["minigame"] = minigame
         #John Platkowski - 11/8/2026
         #Show the instructions and countdown first, which then switches to the minigame
         self.screens["instructions"] = InstructionScreen(self, minigame)
         self.switchScreen("instructions")
 
-    #this starts a game
-    def startGame(self, gameMode):
-        self.session.setGameMode(gameMode)
-        self.session.start()
-        if gameMode == "single_player":
-            self.switchScreen("t1")
-        else:
-            #John Platkowski - 11/8/2026
-            #Open a server and wait for the other player before continuing
-            self.session.host()
-            self.switchScreen("host")
+    #this schedules the next minigame
+    def scheduleNextMinigame(self, name=None, seed=None):
+        self.nextMinigame = name
+        self.nextSeed = seed
+        self.roundDelay = 3
 
+    def updateRoundDelay(self, dt):
+        if self.roundDelay <= 0:
+            return
+
+        self.roundDelay -= dt
+
+        if self.roundDelay <= 0:
+            self.roundDelay = 0
+
+            name = self.nextMinigame
+            seed = self.nextSeed
+
+            self.nextMinigame = None
+            self.nextSeed = None
+
+            self.startMinigame(name, seed)
+            self.roundFinished = False
+
+    # Joshua - 11/19/2026
+    # Handles progression after a minigame finishes
+    def finishRound(self):
+        if self.roundFinished:
+            return
+
+        self.roundFinished = True
+        if self.session.isSingle():
+            if not self.session.nextRound():
+                self.switchScreen("menu")
+                return
+
+            self.scheduleNextMinigame()
+            return
+
+        # Multiplayer: only the host controls progression.
+        if not self.session.isHost or not self.session.hasAllResults():
+            return
+
+        results = self.session.pendingResults
+
+        if not self.session.processResults(results[0], results[1]):
+            self.session.clearResults()
+            self.session.send({"type": "game_over"})
+            self.switchScreen("menu")
+            return
+
+        self.session.clearResults()
+
+        minigameName = self.session.pickMinigame()
+        seed = random.randint(0, 99999)
+
+        self.session.send({
+            "type": "next_minigame",
+            "name": minigameName,
+            "seed": seed,
+            "round": self.session.roundNumber
+        })
+
+        self.scheduleNextMinigame(minigameName, seed)
     #This method runs the main game loop
     def run(self):
         while self.running:
@@ -109,17 +158,15 @@ class Game:
             #Update the current screen
             self.current.update(dt)
 
+            #Check whether the current minigame has finished
+            if self.current == self.screens.get("minigame"):
+                if self.current.finished:
+                    self.finishRound()
+
+            self.updateRoundDelay(dt)
+            
             #Draw the current screen
             self.current.draw(self.surface)
             pygame.display.flip()
 
         pygame.quit()
-
-    def handle(result_a, result_b, player_a, player_b):
-        #Nickan Safi 11/6/2026
-        if result_a < result_b:
-            player_a.loseLife()
-        if result_b < result_a:
-            player_b.loseLife()
-        if result_b == result_a:
-            pass
