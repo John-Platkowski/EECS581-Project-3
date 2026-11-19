@@ -39,5 +39,9 @@ class Minigame(Screen):
         self.result.completed = completed
         if completed:
             self.result.time = (pygame.time.get_ticks() - self.startTime) / 1000
-        self.game.session.send({"type": "result", "player": self.game.session.localPlayer, "value": vars(self.result)})
+
+        if not self.game.session.isSingle():
+            player = 0 if self.game.session.isHost else 1
+            self.game.session.recordResult(player, vars(self.result))
+            self.game.session.send({"type": "result", "player": player, "value": vars(self.result)})
 

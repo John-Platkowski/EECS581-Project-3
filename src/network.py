@@ -14,7 +14,8 @@ PORT = 5555
 class Server:
     def __init__(self):
         self.connection = None
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.TCP_KEEPALIVE)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         self.socket.bind(("", PORT))
         self.socket.listen(1)
         self.socket.setblocking(False)
@@ -38,13 +39,15 @@ class Client:
     
     #try to connect to the host, returns true if succesful, returns false on failure
     def connect(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.connection.settimeout(3)
-            self.connection.connect((self.address, PORT))
-            self.connection.setblocking(False)
+            sock.settimeout(3)
+            sock.connect((self.address, PORT))
+
+            self.connection = Connection(sock)
             return True
         except OSError:
+            sock.close()
             self.connection = None
             return False
 
@@ -108,18 +111,16 @@ class Connection:
             if self.isValid(m):
                 received.append(m)
             else:
-                print("Invalid message received")
+                print("Invalid message received", repr(m))
         return received
 
     #Nickan Safi 11/13/26: add validity check for messages
-    def isValid(m):
-        try:
-            j = json.loads(m)
-        except:
+    def isValid(self, m):
+        if not isinstance(m, dict) or "type" not in m:
             return False
-        if j.type == "result":
-            try:
-                r = json.loads(j.result)
-            except:
+
+        if m["type"] == "value":
+            if "value" not in m:
                 return False
+
         return True

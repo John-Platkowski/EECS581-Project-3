@@ -5,6 +5,7 @@ from maze import Maze
 from reaction import Reaction
 from minesweeper import Minesweeper
 import random
+from GameResult import GameResult
 
 # Lena Palmieri - 11/6/2026
 
@@ -22,7 +23,6 @@ class Session:
 
         self.pendingResults = {}
         self.isHost = False
-        self.localPlayer = 0
 
 
         # Trey - 11/6/2026
@@ -111,10 +111,12 @@ class Session:
         return self.nextRound()
 
     def recordResult(self, player, result):
+        if isinstance(result, dict):
+            result = GameResult(**result)
         self.pendingResults[player] = result
 
     def hasAllResults(self):
-        return len(self.pendingResults) == len(self.players)
+        return all(player in self.pendingResults for player in range(len(self.players)))
 
     def clearResults(self):
         self.pendingResults = {}

@@ -241,7 +241,9 @@ class HostScreen(Screen):
     def update(self, dt):
         if self.game.session.server.accept():
             self.game.session.connection = self.game.session.server.connection
-            self.game.switchScreen("t2")
+            self.game.session.isHost = True
+            self.game.session.start()
+            self.game.startHostMinigame()
 
     def draw(self, surface):
         surface.fill((30, 30, 50))
@@ -261,6 +263,7 @@ class JoinScreen(Screen):
         self.font = pygame.font.Font(None, 48)
         self.sessionID = ""
         self.error = ""
+        self.waiting = False
 
     def handleEvent(self, event):
         if event.type == pygame.KEYDOWN:
@@ -272,7 +275,9 @@ class JoinScreen(Screen):
                 if client.connect():
                     self.game.session.client = client
                     self.game.session.connection = client.connection
-                    self.game.switchScreen("t2")
+                    self.game.session.isHost = False
+                    self.game.session.start()
+                    self.waiting = True
                 else:
                     self.error = "Connection failed"
             elif event.unicode in "0123456789.":
@@ -282,10 +287,21 @@ class JoinScreen(Screen):
     def draw(self, surface):
         surface.fill((30, 30, 50))
 
+        if self.waiting:
+            text = self.font.render(
+                "Connected! Waiting for host...",
+                True,
+                (255, 255, 255)
+            )
+            surface.blit(text, text.get_rect(center=(400, 200)))
+            return
+
         prompt = self.font.render("Enter session ID:", True, (255, 255, 255))
         surface.blit(prompt, prompt.get_rect(center=(400, 160)))
+
         typed = self.font.render(self.sessionID, True, (255, 255, 255))
         surface.blit(typed, typed.get_rect(center=(400, 220)))
+
         if self.error != "":
             errorText = self.font.render(self.error, True, (255, 80, 80))
             surface.blit(errorText, errorText.get_rect(center=(400, 280)))

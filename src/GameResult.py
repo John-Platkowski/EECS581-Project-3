@@ -6,11 +6,11 @@
 #to be returned by a minigame upon completion.
 class GameResult:
     #Jack Larson 11/5/2026
-    def __init__(self):
-        self.completed = False
-        self.progress = 0.0
-        self.score = 0
-        self.time = 0.0
+    def __init__(self, completed=False, progress=0.0, score=0, time=0.0):
+        self.completed = completed
+        self.progress = progress
+        self.score = score
+        self.time = time
 
     #Joshua - 11/19/2026
     #Created less than which is what handle uses to compare results

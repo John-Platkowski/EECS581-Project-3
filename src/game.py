@@ -70,10 +70,25 @@ class Game:
         minigameClass = self.session.minigame_classes[name]
         minigame = minigameClass(self, self.session.difficulty, seed)
         self.screens["minigame"] = minigame
+
+        self.roundFinished = False
         #John Platkowski - 11/8/2026
         #Show the instructions and countdown first, which then switches to the minigame
         self.screens["instructions"] = InstructionScreen(self, minigame)
         self.switchScreen("instructions")
+
+    def startHostMinigame(self):
+        name = self.session.pickMinigame()
+        seed = random.randint(0, 99999)
+
+        self.session.send({
+            "type": "next_minigame",
+            "name": name,
+            "seed": seed,
+            "round": self.session.roundNumber
+        })
+
+        self.startMinigame(name, seed)
 
     #this schedules the next minigame
     def scheduleNextMinigame(self, name=None, seed=None):
@@ -105,8 +120,9 @@ class Game:
         if self.roundFinished:
             return
 
-        self.roundFinished = True
         if self.session.isSingle():
+            self.roundFinished = True
+
             if not self.session.nextRound():
                 self.switchScreen("menu")
                 return
@@ -114,10 +130,13 @@ class Game:
             self.scheduleNextMinigame()
             return
 
-        # Multiplayer: only the host controls progression.
-        if not self.session.isHost or not self.session.hasAllResults():
+        if not self.session.isHost:
             return
 
+        if not self.session.hasAllResults():
+            return
+
+        self.roundFinished = True
         results = self.session.pendingResults
 
         if not self.session.processResults(results[0], results[1]):
@@ -139,33 +158,47 @@ class Game:
         })
 
         self.scheduleNextMinigame(minigameName, seed)
-    #This method runs the main game loop
+
     def run(self):
         while self.running:
-            #Set the game to run at 60 FPS 
+            # Set the game to run at 60 FPS
             dt = self.clock.tick(60) / 1000
 
-            #Iterate over all the events we need to process
+            # Iterate over all the events we need to process
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                 else:
                     self.current.handleEvent(event)
+
+            # Handle incoming network messages
             if self.session.connection:
                 for message in self.session.connection.getMessages():
-                    self.current.handleNetMessage(message)
+                    if message["type"] == "next_minigame":
+                        self.session.roundNumber = message["round"]
 
-            #Update the current screen
+                        if message["round"] == 1:
+                            self.startMinigame(message["name"], message["seed"])
+                        else:
+                            self.scheduleNextMinigame(message["name"], message["seed"])
+
+                    elif message["type"] == "result":
+                        self.session.recordResult(message["player"], message["value"])
+
+                    else:
+                        self.current.handleNetMessage(message)
+
+            # Update the current screen
             self.current.update(dt)
 
-            #Check whether the current minigame has finished
+            # Check whether the current minigame has finished
             if self.current == self.screens.get("minigame"):
                 if self.current.finished:
                     self.finishRound()
 
             self.updateRoundDelay(dt)
-            
-            #Draw the current screen
+
+            # Draw the current screen
             self.current.draw(self.surface)
             pygame.display.flip()
 
