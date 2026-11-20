@@ -87,10 +87,18 @@ class Game:
         self.screens["minigame"] = minigame
 
         self.roundFinished = False
+
+        #Jack Larson - 11/20/2026
+        #Interjects the round status screen
+        self.screens["results"] = ResultsScreen(self, minigame)
+        self.switchScreen("results")
+
+
         #John Platkowski - 11/8/2026
         #Show the instructions and countdown first, which then switches to the minigame
         self.screens["instructions"] = InstructionScreen(self, minigame)
-        self.switchScreen("instructions")
+        
+        #self.switchScreen("instructions")
 
     def startHostMinigame(self):
         name = self.session.pickMinigame()
@@ -199,6 +207,9 @@ class Game:
 
                     elif message["type"] == "result":
                         self.session.recordResult(message["player"], message["value"])
+
+                    elif message["type"] == "set_lives":
+                        self.session.setLives(message["player"], message["value"])
 
                     else:
                         self.current.handleNetMessage(message)
