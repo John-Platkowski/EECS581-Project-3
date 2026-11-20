@@ -4,6 +4,9 @@ from gameinfo import GameInfo
 from network import getIP
 from network import Client
 
+#Nickan Safi 11/20/2026
+#Change text depending on whether the game has finished
+
 #Tyler Oswald - 11/5/2026
 #This is a base class that other screens can inherit from
 class Screen:
@@ -38,10 +41,11 @@ class TestScreen1(Screen):
         self.buttonFont = pygame.font.Font(None, 36)
 
         self.minigameNames = ["RPS", "Maze", "Reaction", "Minesweeper", "Pizza Cutting"]
+        self.minigameNames = list(game.session.minigame_classes.keys())
         # Create one button for each registered minigame
         self.buttons = {}
         for i, name in enumerate(self.minigameNames):
-            self.buttons[name] = pygame.Rect(250, 120 + i * 70, 300, 55)
+            self.buttons[name] = pygame.Rect(200+(i%2)*210, 120 + (i//2) * 50, 190, 35)
 
     def handleEvent(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -228,6 +232,114 @@ class InstructionScreen(Screen):
 
         #Draw game info
         self.gameInfo.draw(surface, self.game.session)
+
+
+#Jack Larson 11/20/2026
+#Heavily taken from instructions, replaces information with round result information
+#for a few seconds before moving to the actual instructions
+#Also intentionally breaks some zoom features so that the zoom intro plays
+#and then then outro plays during instructions
+
+#Nickan Safi 11/20/2026
+#Get text values from the game
+class ResultsScreen(InstructionScreen):
+    def __init__(self, game, minigame):
+        super().__init__(game, minigame)
+        self.timeLeft = 3
+        self.added = False
+        
+    #Lena Palmieri - 11/12/2026
+    #Updates timings for all phases of the animation
+    def update(self, dt):
+        elapsed = pygame.time.get_ticks() - self.phase_start
+        if self.game.roundFinished and not self.added:
+            self.timeLeft += 3
+            self.added = True
+
+        if self.phase == "enter":
+            if elapsed >= self.enter_duration:
+                self.phase = "wait"
+                self.phase_start = pygame.time.get_ticks()
+
+        elif self.phase == "wait":
+            self.timeLeft -= dt
+
+            if self.timeLeft <= 0 and not self.game.roundFinished:
+                self.game.switchScreen("instructions")
+
+    def draw(self, surface):
+        self.virtual_surface.fill((30, 30, 50))
+
+        titleText = ("Round " + str(self.game.session.roundNumber)) if not self.game.roundFinished else ("Finished " + self.minigame.title)
+
+        title = self.titleFont.render(titleText, True, (255, 255, 255))
+        self.virtual_surface.blit(title, title.get_rect(center=(400, 80)))
+
+        resultsText = ("Progress: " + str(self.minigame.result.progress) + "\nScore: " + str(self.minigame.result.score) + "\nTime: " + str(self.minigame.result.score)) if self.game.roundFinished else ("Get Ready!")
+        
+
+        if len(self.game.session.lastResults) > 0:
+            player = 0 if self.game.session.isHost else 1
+
+            resultA = self.game.session.lastResults[player]
+            resultB = self.game.session.lastResults[1-player]
+
+            resultsText = ""
+            
+            if resultA < resultB:
+                resultsText += "ROUND LOST"
+            elif resultB < resultA:
+                resultsText += "ROUND WON"
+            else:
+                resultsText += "ROUND TIED"
+
+            resultsText += "\nLIVES LEFT: " + str(self.game.session.players[player].lives)
+            resultsText += " VS " + str(self.game.session.players[1-player].lives)
+
+            if resultA.completed != resultB.completed:
+                resultsText += "\nYou Finished: " + str(resultA.completed)
+                resultsText += "\nOpponent Finished: " + str(resultB.completed)
+            elif resultA.score != resultB.score:
+                resultsText += "\nYour Score: " + str(resultA.score)
+                resultsText += "\nOpponent's Score: " + str(resultB.score)
+            elif resultA.progress != resultB.progress:
+                resultsText += "\nYour Progress: " + str(round(resultA.progress*100))
+                resultsText += "\nOpponent's Progress: " + str(round(resultB.progress*100))
+            elif resultA.time != resultB.time:
+                resultsText += "\nYour Time: " + str(resultA.time)
+                resultsText += "\nOpponent's Time: " + str(resultB.time)
+        
+
+        y = 130
+        for line in resultsText.split("\n"):
+            text = self.textFont.render(line, True, (255, 255, 255))
+            self.virtual_surface.blit(text, text.get_rect(center=(400, y)))
+            y += 35
+
+        countdown = self.titleFont.render("Advancing in " + str(math.ceil(self.timeLeft)), True, (255, 220, 0))
+        self.virtual_surface.blit(countdown, countdown.get_rect(center=(400, 320)))
+
+        #Lena Palmieri - 11/12/2026
+        #Calculates the zoom features
+
+        screenWidth, screenHeight = surface.get_size()
+
+        scale = self.get_zoom()
+
+        scaledWidth = int(screenWidth * scale)
+        scaledHeight = int(screenHeight * scale)
+
+        scaled_surface = pygame.transform.smoothscale(self.virtual_surface, (scaledWidth, scaledHeight))
+
+        x = (surface.get_width() - scaledWidth) // 2
+        y = (surface.get_height() - scaledHeight) // 2
+
+        surface.fill((0, 0, 0))
+        surface.blit(scaled_surface, (x, y))
+
+        #Draw game info
+        self.gameInfo.draw(surface, self.game.session)
+
 
 
 #John Platkowski - 11/8/2026

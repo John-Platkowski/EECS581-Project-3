@@ -6,20 +6,22 @@ from maze import Maze
 from reaction import Reaction
 from minesweeper import Minesweeper
 from pizzacutting import PizzaCutting
+from simon import Simon
 import random
+
+#Nickan Safi 11/20/2026
+#Switch screen to results when game ends
 
 #Nickan Safi 11/6/2026
 #Added handling for results
 
+    
 #Trey Timko - 11/6/2026
 #Maps each minigame name from Session.pickMinigame() to a class
-minigame_classes = {
-    "RPS": RPS,
-    "Maze": Maze,
-    "Reaction": Reaction,
-    "Minesweeper": Minesweeper,
-    "Pizza Cutting": PizzaCutting
-}
+#Jack Larson 11/20/2026
+#Removed duplication of this map
+
+
 
 #Tyler Oswald - 11/5/2026
 #This class controls the main game loop
@@ -29,6 +31,7 @@ class Game:
         #Create the main game window 
         self.surface = pygame.display.set_mode((800, 400), pygame.RESIZABLE)
         self.clock = pygame.time.Clock()
+
 
         #Starts a new single player/multiplayer session
         self.session = Session()
@@ -82,15 +85,23 @@ class Game:
         if seed is None:
             seed = random.randint(0, 99999)
 
-        minigameClass = minigame_classes[name]
+        minigameClass = self.session.minigame_classes[name]
         minigame = minigameClass(self, self.session.difficulty, seed)
         self.screens["minigame"] = minigame
 
         self.roundFinished = False
+
+        #Jack Larson - 11/20/2026
+        #Interjects the round status screen
+        self.screens["results"] = ResultsScreen(self, minigame)
+        self.switchScreen("results")
+
+
         #John Platkowski - 11/8/2026
         #Show the instructions and countdown first, which then switches to the minigame
         self.screens["instructions"] = InstructionScreen(self, minigame)
-        self.switchScreen("instructions")
+        
+        #self.switchScreen("instructions")
 
     def startHostMinigame(self):
         name = self.session.pickMinigame()
@@ -131,7 +142,10 @@ class Game:
 
     # Joshua - 11/19/2026
     # Handles progression after a minigame finishes
+    #Nickan Safi 11/20/2026
+    #Switch the screen at the beginning of the function
     def finishRound(self):
+        #self.switchScreen("results")
         if self.roundFinished:
             return
 
@@ -199,6 +213,9 @@ class Game:
 
                     elif message["type"] == "result":
                         self.session.recordResult(message["player"], message["value"])
+
+                    elif message["type"] == "set_lives":
+                        self.session.setLives(message["player"], message["value"])
 
                     else:
                         self.current.handleNetMessage(message)

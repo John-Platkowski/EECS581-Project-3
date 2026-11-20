@@ -4,6 +4,8 @@ from rps import RPS
 from maze import Maze
 from reaction import Reaction
 from minesweeper import Minesweeper
+from pizzacutting import PizzaCutting
+from simon import Simon
 import random
 from GameResult import GameResult
 
@@ -22,6 +24,7 @@ class Session:
         self.gameMode = ""
 
         self.pendingResults = {}
+        self.lastResults = {}
         self.isHost = False
 
 
@@ -34,7 +37,9 @@ class Session:
             "RPS": RPS,
             "Maze": Maze,
             "Reaction": Reaction,
-            "Minesweeper": Minesweeper
+            "Minesweeper": Minesweeper,
+            "Pizza Cutting": PizzaCutting,
+            "Simon": Simon,
         }
 
     # Add players to the session
@@ -105,6 +110,18 @@ class Session:
         elif result_b < result_a:
             self.players[1].loseLife()
 
+        #Jack Larson 11/20/2026 Networked lives
+        self.send({
+            "type": "set_lives",
+            "player": 0,
+            "value": self.players[0].lives
+        })
+        self.send({
+            "type": "set_lives",
+            "player": 1,
+            "value": self.players[1].lives
+        })
+
         if any(player.lives <= 0 for player in self.players):
             return False
 
@@ -114,6 +131,11 @@ class Session:
         if isinstance(result, dict):
             result = GameResult(**result)
         self.pendingResults[player] = result
+        self.lastResults[player] = result
+        
+    #Jack Larson 11/20/2026 Networked lives
+    def setLives(self, player, lives):
+        self.players[player].lives = lives
 
     def hasAllResults(self):
         return all(player in self.pendingResults for player in range(len(self.players)))
