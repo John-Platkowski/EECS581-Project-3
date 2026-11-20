@@ -280,7 +280,6 @@ class ResultsScreen(InstructionScreen):
 
         if len(self.game.session.lastResults) > 0:
             player = 0 if self.game.session.isHost else 1
-
             resultA = self.game.session.lastResults[player]
             resultB = self.game.session.lastResults[1-player]
 
