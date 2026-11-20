@@ -277,7 +277,7 @@ class ResultsScreen(InstructionScreen):
             
             if resultA < resultB:
                 resultsText += "ROUND LOST"
-            elif resultA < resultB:
+            elif resultB < resultA:
                 resultsText += "ROUND WON"
             else:
                 resultsText += "ROUND TIED"
