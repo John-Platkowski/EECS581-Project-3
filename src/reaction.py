@@ -20,7 +20,7 @@ class Reaction(Minigame):
         self.font = pygame.font.Font(None, 36)
         self.largeFont = pygame.font.Font(None, 48)
 
-        self.totalRounds = 15
+        self.totalRounds = 10
         self.currentRound = 1
 
         self.bestTime = None
@@ -29,9 +29,9 @@ class Reaction(Minigame):
         self.failures = 0
 
         self.state = "waiting"
-        self.waitTimer = 15.0
+        self.waitTimer = 5.0
         self.resultTimer = 0.0
-        self.timeoutTimer = 8.0
+        self.timeoutTimer = 5.0
 
         self.square = pygame.Rect(0, 0, self.squareSize, self.squareSize)
         self.startTime = None
@@ -49,9 +49,9 @@ class Reaction(Minigame):
 
     def startRound(self):
         self.state = "waiting"
-        self.waitTimer = 15.0
+        self.waitTimer = 5.0
         self.resultTimer = 0.0
-        self.timeoutTimer = 8.0
+        self.timeoutTimer = 5.0
         self.startTime = None
         self.currentTime = None
         self.lastResult = ""
@@ -71,7 +71,7 @@ class Reaction(Minigame):
     def finishRound(self, result):
         self.lastResult = result
         self.state = "result"
-        self.resultTimer = 5.0
+        self.resultTimer = 1.0
         self.startTime = None
 
     def recordTime(self):
