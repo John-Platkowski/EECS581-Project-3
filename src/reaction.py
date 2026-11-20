@@ -212,3 +212,4 @@ class Reaction(Minigame):
                     text,
                     text.get_rect(center=(400, 210 + i * 45))
                 )
+            self.finish(True)
