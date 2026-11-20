@@ -2,10 +2,6 @@ import pygame
 import random
 from minigame import Minigame
 
-#placeholder
-def generateSequence(difficulty, seed):
-    return ["red", "green", "blue", "yellow", "red", "blue"][:(3 + difficulty)]
-
 #Trey - 11/20/2026
 #Simon says game
 class Simon(Minigame):
@@ -15,7 +11,7 @@ class Simon(Minigame):
     def __init__(self, game, difficulty, seed):
         super().__init__(game, difficulty, seed)
         self.colors = ["red", "green", "blue", "yellow"]
-        self.sequence = generateSequence(difficulty, seed)
+        self.generateSequence(difficulty, seed)
         self.state = "showing"
         self.position = 0
         self.timer = 0.6
@@ -35,6 +31,16 @@ class Simon(Minigame):
                        "blue": (60, 60, 255),
                        "yellow": (255, 255, 60)}
 
+    #Jack Larson 11/20/2026
+    def generateSequence(self, difficulty, seed):
+        rand = random.Random(seed)
+
+        seq = []
+
+        for i in range(0, 3 + difficulty):
+            seq.append(rand.choice(self.colors))
+
+        self.sequence = seq
 
     def handleEvent(self, event):
         if self.state != "input":
