@@ -9,6 +9,9 @@ from pizzacutting import PizzaCutting
 from simon import Simon
 import random
 
+#Nickan Safi 11/20/2026
+#Switch screen to results when game ends
+
 #Nickan Safi 11/6/2026
 #Added handling for results
 
@@ -139,7 +142,10 @@ class Game:
 
     # Joshua - 11/19/2026
     # Handles progression after a minigame finishes
+    #Nickan Safi 11/20/2026
+    #Switch the screen at the beginning of the function
     def finishRound(self):
+        self.switchScreen("results")
         if self.roundFinished:
             return
 

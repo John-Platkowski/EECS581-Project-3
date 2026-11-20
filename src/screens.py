@@ -4,6 +4,9 @@ from gameinfo import GameInfo
 from network import getIP
 from network import Client
 
+#Nickan Safi 11/20/2026
+#Change text depending on whether the game has finished
+
 #Tyler Oswald - 11/5/2026
 #This is a base class that other screens can inherit from
 class Screen:
@@ -236,15 +239,22 @@ class InstructionScreen(Screen):
 #for a few seconds before moving to the actual instructions
 #Also intentionally breaks some zoom features so that the zoom intro plays
 #and then then outro plays during instructions
+
+#Nickan Safi 11/20/2026
+#Get text values from the game
 class ResultsScreen(InstructionScreen):
     def __init__(self, game, minigame):
         super().__init__(game, minigame)
         self.timeLeft = 3
+        self.added = False
         
     #Lena Palmieri - 11/12/2026
     #Updates timings for all phases of the animation
     def update(self, dt):
         elapsed = pygame.time.get_ticks() - self.phase_start
+        if self.game.roundFinished and not self.added:
+            self.timeLeft += 3
+            self.added = True
 
         if self.phase == "enter":
             if elapsed >= self.enter_duration:
@@ -254,18 +264,18 @@ class ResultsScreen(InstructionScreen):
         elif self.phase == "wait":
             self.timeLeft -= dt
 
-            if self.timeLeft <= 0:
+            if self.timeLeft <= 0 and not self.game.roundFinished:
                 self.game.switchScreen("instructions")
 
     def draw(self, surface):
         self.virtual_surface.fill((30, 30, 50))
 
-        titleText = "Round " + str(self.game.session.roundNumber)
+        titleText = ("Round " + str(self.game.session.roundNumber)) if not self.game.roundFinished else ("Finished " + self.minigame.title)
 
         title = self.titleFont.render(titleText, True, (255, 255, 255))
         self.virtual_surface.blit(title, title.get_rect(center=(400, 80)))
 
-        resultsText = "Get Ready!"
+        resultsText = ("Progress: " + str(self.minigame.result.progress) + "\nScore: " + str(self.minigame.result.score) + "\nTime: " + str(self.minigame.result.score)) if self.game.roundFinished else ("Get Ready!")
         
 
         if len(self.game.session.lastResults) > 0:
