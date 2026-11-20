@@ -4,6 +4,7 @@ from rps import RPS
 from maze import Maze
 from reaction import Reaction
 from minesweeper import Minesweeper
+from pizzacutting import PizzaCutting
 from simon import Simon
 import random
 from GameResult import GameResult
@@ -37,6 +38,7 @@ class Session:
             "Maze": Maze,
             "Reaction": Reaction,
             "Minesweeper": Minesweeper,
+            "Pizza Cutting": PizzaCutting,
             "Simon": Simon,
         }
 

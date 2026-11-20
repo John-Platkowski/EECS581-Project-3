@@ -12,16 +12,13 @@ import random
 #Nickan Safi 11/6/2026
 #Added handling for results
 
+    
 #Trey Timko - 11/6/2026
 #Maps each minigame name from Session.pickMinigame() to a class
-minigame_classes = {
-    "RPS": RPS,
-    "Maze": Maze,
-    "Reaction": Reaction,
-    "Minesweeper": Minesweeper,
-    "Pizza Cutting": PizzaCutting,
-    "Simon": Simon,
-}
+#Jack Larson 11/20/2026
+#Removed duplication of this map
+
+
 
 #Tyler Oswald - 11/5/2026
 #This class controls the main game loop
@@ -31,6 +28,7 @@ class Game:
         #Create the main game window 
         self.surface = pygame.display.set_mode((800, 400), pygame.RESIZABLE)
         self.clock = pygame.time.Clock()
+
 
         #Starts a new single player/multiplayer session
         self.session = Session()
@@ -84,7 +82,7 @@ class Game:
         if seed is None:
             seed = random.randint(0, 99999)
 
-        minigameClass = minigame_classes[name]
+        minigameClass = self.session.minigame_classes[name]
         minigame = minigameClass(self, self.session.difficulty, seed)
         self.screens["minigame"] = minigame
 

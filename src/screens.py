@@ -38,10 +38,11 @@ class TestScreen1(Screen):
         self.buttonFont = pygame.font.Font(None, 36)
 
         self.minigameNames = ["RPS", "Maze", "Reaction", "Minesweeper", "Pizza Cutting"]
+        self.minigameNames = list(game.session.minigame_classes.keys())
         # Create one button for each registered minigame
         self.buttons = {}
         for i, name in enumerate(self.minigameNames):
-            self.buttons[name] = pygame.Rect(250, 120 + i * 70, 300, 55)
+            self.buttons[name] = pygame.Rect(200+(i%2)*210, 120 + (i//2) * 50, 190, 35)
 
     def handleEvent(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
