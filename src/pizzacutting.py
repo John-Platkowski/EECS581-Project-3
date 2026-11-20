@@ -117,6 +117,7 @@ class PizzaCutting(Minigame):
         if len(self.cuts) >= self.totalSlices:
             self.calculateAccuracy()
             self.state = "results"
+            self.finish(True)
 
     def calculateAccuracy(self):
         # Sort cuts by their angular position
