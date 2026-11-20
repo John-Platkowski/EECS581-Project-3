@@ -37,7 +37,7 @@ class TestScreen1(Screen):
         self.titleFont = pygame.font.Font(None, 56)
         self.buttonFont = pygame.font.Font(None, 36)
 
-        self.minigameNames = ["RPS", "Maze", "Reaction", "Minesweeper"]
+        self.minigameNames = ["RPS", "Maze", "Reaction", "Minesweeper", "Pizza Cutting"]
         # Create one button for each registered minigame
         self.buttons = {}
         for i, name in enumerate(self.minigameNames):

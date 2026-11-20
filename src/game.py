@@ -1,10 +1,25 @@
 import pygame
 from screens import *
 from session import Session
+from rps import RPS
+from maze import Maze
+from reaction import Reaction
+from minesweeper import Minesweeper
+from pizzacutting import PizzaCutting
 import random
 
 #Nickan Safi 11/6/2026
 #Added handling for results
+
+#Trey Timko - 11/6/2026
+#Maps each minigame name from Session.pickMinigame() to a class
+minigame_classes = {
+    "RPS": RPS,
+    "Maze": Maze,
+    "Reaction": Reaction,
+    "Minesweeper": Minesweeper,
+    "Pizza Cutting": PizzaCutting
+}
 
 #Tyler Oswald - 11/5/2026
 #This class controls the main game loop
@@ -67,7 +82,7 @@ class Game:
         if seed is None:
             seed = random.randint(0, 99999)
 
-        minigameClass = self.session.minigame_classes[name]
+        minigameClass = minigame_classes[name]
         minigame = minigameClass(self, self.session.difficulty, seed)
         self.screens["minigame"] = minigame
 
