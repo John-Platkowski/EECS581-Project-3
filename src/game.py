@@ -6,6 +6,7 @@ from maze import Maze
 from reaction import Reaction
 from minesweeper import Minesweeper
 from pizzacutting import PizzaCutting
+from simon import Simon
 import random
 
 #Nickan Safi 11/6/2026
@@ -18,7 +19,8 @@ minigame_classes = {
     "Maze": Maze,
     "Reaction": Reaction,
     "Minesweeper": Minesweeper,
-    "Pizza Cutting": PizzaCutting
+    "Pizza Cutting": PizzaCutting,
+    "Simon": Simon,
 }
 
 #Tyler Oswald - 11/5/2026
