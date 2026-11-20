@@ -145,7 +145,7 @@ class Game:
     #Nickan Safi 11/20/2026
     #Switch the screen at the beginning of the function
     def finishRound(self):
-        self.switchScreen("results")
+        #self.switchScreen("results")
         if self.roundFinished:
             return
 
