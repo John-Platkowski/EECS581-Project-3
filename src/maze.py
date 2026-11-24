@@ -18,11 +18,11 @@ class Maze(Minigame):
         self.cellSize = 30
         self.font = pygame.font.Font(None, 32)
 
-        # Generate the maze
-        self.maze = generateMaze(difficulty, seed)
+        self.rows = 11
+        self.cols = 11
 
-        self.rows = len(self.maze)
-        self.cols = len(self.maze[0])
+        # Generate the maze
+        self.maze = generateMaze(self.rows, self.cols, seed)
 
         # Find player starting position and destination
         self.playerPosition = self.findStart()
