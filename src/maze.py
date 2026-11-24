@@ -137,7 +137,7 @@ class Maze(Minigame):
                 playerCenter,
                 self.cellSize // 3
             )
-            
+
         # Draw player
         # Draw player as a smaller circle inside the current tile
         playerCenter = (
@@ -155,8 +155,14 @@ class Maze(Minigame):
 
         elapsed = (pygame.time.get_ticks() - self.startTime) / 1000
 
-        timerText = self.font.render(
-            f"Time: {elapsed:.2f}s", True, (255, 255, 255)
-        )
-        surface.blit(timerText, (10, 10))
+
+        if not self.result.completed or elapsed % 1 > 0.5:
+
+            if self.result.completed and elapsed >= self.result.time:
+                elapsed = self.result.time
+
+            timerText = self.font.render(
+                f"Time: {elapsed:.2f}s", True, (255, 255, 255)
+            )
+            surface.blit(timerText, (10, 10))
         self.gameInfo.draw(surface, self.game.session)
