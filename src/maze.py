@@ -26,6 +26,7 @@ class Maze(Minigame):
 
         # Find player starting position and destination
         self.playerPosition = self.findStart()
+        self.opponentPosition = self.playerPosition
         self.destination = self.findDestination()
 
     # Finds the starting position in the maze
@@ -71,10 +72,18 @@ class Maze(Minigame):
             return
 
         self.playerPosition = (newX, newY)
+        if not self.game.session.isSingle():
+            self.game.session.send({"type": "maze_position", "position": self.playerPosition})
 
         # Check whether the player reached the destination
         if self.playerPosition == self.destination:
             self.finish()
+
+    #Jack Larson 11/24/2026
+    #Network other player ghost
+    def handleNetMessage(self, message):
+        if message.get("type") == "maze_position":
+            self.opponentPosition = message.get("position")
 
     def draw(self, surface):
         surface.fill((30, 30, 50))
@@ -112,6 +121,23 @@ class Maze(Minigame):
         )
         pygame.draw.rect(surface, (0, 200, 0), destinationRect)
 
+        #Jack Larson 11/24/2026
+        #Add other player ghost
+        if not self.game.session.isSingle():
+            # Draw other player
+            # Draw other player as a smaller circle inside the current tile
+            playerCenter = (
+                offsetX + self.opponentPosition[0] * self.cellSize + self.cellSize // 2,
+                offsetY + self.opponentPosition[1] * self.cellSize + self.cellSize // 2
+            )
+
+            pygame.draw.circle(
+                surface,
+                (255, 100, 50),
+                playerCenter,
+                self.cellSize // 3
+            )
+            
         # Draw player
         # Draw player as a smaller circle inside the current tile
         playerCenter = (
@@ -125,6 +151,8 @@ class Maze(Minigame):
             playerCenter,
             self.cellSize // 3
         )
+
+
         elapsed = (pygame.time.get_ticks() - self.startTime) / 1000
 
         timerText = self.font.render(
