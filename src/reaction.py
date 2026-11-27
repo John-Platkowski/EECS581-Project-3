@@ -16,7 +16,6 @@ class Reaction(Minigame):
     def __init__(self, game, difficulty, seed):
         super().__init__(game, difficulty, seed)
 
-        self.squareSize = 200
         self.font = pygame.font.Font(None, 36)
         self.largeFont = pygame.font.Font(None, 48)
 
@@ -33,8 +32,9 @@ class Reaction(Minigame):
         self.resultTimer = 0.0
         self.timeoutTimer = 5.0
 
-        self.square = pygame.Rect(0, 0, self.squareSize, self.squareSize)
-        self.startTime = None
+        self.squareSize = 100
+        self.difficulty = difficulty
+        self.reactionStartTime = None
         self.lastResult = ""
 
     def start(self):
@@ -42,40 +42,73 @@ class Reaction(Minigame):
         self.reactionTimes = []
         self.bestTime = None
         self.currentTime = None
-        self.successes = 0
-        self.failures = 0
-
+        
         self.startRound()
 
     def startRound(self):
         self.state = "waiting"
         self.waitTimer = 5.0
-        self.resultTimer = 0.0
         self.timeoutTimer = 5.0
-        self.startTime = None
-        self.currentTime = None
+        self.reactionStartTime = None
         self.lastResult = ""
 
     def spawnSquare(self):
-        #easy difficulty the square stays in one spot
-
         width, height = self.game.surface.get_size()
 
-        # Define the center region (middle 50% of screen)
-        regionWidth = width * 0.5
-        regionHeight = height * 0.5
+        if self.difficulty == 3:
+            self.squareSize = random.randint(50, 200)
+        else:
+            self.squareSize = 200
 
-        self.square.x = width // 2 - (self.squareSize / 2)
-        self.square.y = height // 2 - (self.squareSize / 2)
+        center_x = width // 2
+        center_y = height // 2
+
+        if self.difficulty == 3:
+            rand_x = random.randint(max(0, center_x - 300), min(width - self.squareSize, center_x + 300))
+            rand_y = random.randint(max(0, center_y - 200), min(height - self.squareSize, center_y + 200))
+
+        elif self.difficulty == 2:
+            rand_x = random.randint(max(0, center_x - 200), min(width - self.squareSize, center_x + 200))
+            rand_y = random.randint(max(0, center_y - 100), min(height - self.squareSize, center_y + 100))
+
+        else:
+            rand_x = center_x - self.squareSize // 2
+            rand_y = center_y - self.squareSize // 2
+
+        self.square = pygame.Rect(rand_x, rand_y, self.squareSize, self.squareSize)
+
+
 
     def finishRound(self, result):
         self.lastResult = result
-        self.state = "result"
-        self.resultTimer = 1.0
-        self.startTime = None
+
+        if self.currentRound < self.totalRounds:
+            self.currentRound += 1
+            self.startRound()
+        else:
+            self.state = "game_over"
+            if not self.game.session.isSingle():
+                self.game.session.send({"type": "reaction_time", "time": self.bestTime})
+            self.finish(True)
+
+    def handleNetMessage(self, message):
+        if message.get("type") == "reaction_time":
+            self.opponentTime = message.get("time")
+            self.determineWin()
+
+    def determineWin(self):
+        if self.bestTime is None or self.opponentTime is None:
+            return
+        if self.bestTime < self.opponentTime:
+            self.result.score = 1
+        elif self.bestTime == self.opponentTime:
+            self.result.score = 0
+        else:
+            self.result.score = -1
+        self.finish()
 
     def recordTime(self):
-        reactionTime = (time.perf_counter() - self.startTime) * 1000
+        reactionTime = (time.perf_counter() - self.reactionStartTime) * 1000
         self.currentTime = reactionTime
 
         self.successes += 1
@@ -90,6 +123,7 @@ class Reaction(Minigame):
             return
 
         if self.state == "waiting":
+            self.currentTime = "Too Early!"
             self.failures += 1
             self.finishRound("Too Early!")
 
@@ -97,6 +131,7 @@ class Reaction(Minigame):
             if self.square.collidepoint(event.pos):
                 self.recordTime()
             else:
+                self.currentTime = "Missed!"
                 self.failures += 1
                 self.finishRound("Missed the Square!")
 
@@ -107,25 +142,16 @@ class Reaction(Minigame):
             if self.waitTimer <= 0:
                 self.spawnSquare()
                 self.state = "ready"
-                self.startTime = time.perf_counter()
+                self.reactionStartTime = time.perf_counter()
                 self.timeoutTimer = 8.0
 
         elif self.state == "ready":
             self.timeoutTimer -= dt
 
             if self.timeoutTimer <= 0:
+                self.currentTime = "Too Slow!"
                 self.failures += 1
                 self.finishRound("Too Slow! Time's Up!")
-
-        elif self.state == "result":
-            self.resultTimer -= dt
-
-            if self.resultTimer <= 0:
-                if self.currentRound < self.totalRounds:
-                    self.currentRound += 1
-                    self.startRound()
-                else:
-                    self.state = "game_over"
 
     def draw(self, surface):
         surface.fill((30, 30, 50))
@@ -139,11 +165,12 @@ class Reaction(Minigame):
         surface.blit(roundText, (20, 20))
 
         # Current time
-        currentDisplay = (
-            f"{self.currentTime:.2f} ms"
-            if self.currentTime is not None
-            else "--:--"
-        )
+        if self.currentTime is None:
+            currentDisplay = ""
+        elif isinstance(self.currentTime, str):
+            currentDisplay = self.currentTime
+        else:
+            currentDisplay = f"{self.currentTime:.2f} ms"
 
         currentText = self.font.render(
             f"Current Time: {currentDisplay}",
@@ -185,21 +212,6 @@ class Reaction(Minigame):
             )
             surface.blit(timerText, (20, 150))
 
-        elif self.state == "result":
-            message = self.largeFont.render(
-                self.lastResult,
-                True,
-                (255, 255, 255)
-            )
-            surface.blit(message, message.get_rect(center=(surface.get_width() // 2, surface.get_height() // 2 - 30)))
-
-            nextMessage = self.font.render(
-                f"Next round in {self.resultTimer:.1f} seconds",
-                True,
-                (200, 200, 200)
-            )
-            surface.blit(nextMessage, nextMessage.get_rect(center=(surface.get_width() // 2, surface.get_height() // 2 + 30)))
-
         elif self.state == "game_over":
 
             results = [
@@ -212,4 +224,3 @@ class Reaction(Minigame):
                     text,
                     text.get_rect(center=(400, 210 + i * 45))
                 )
-            self.finish(True)
